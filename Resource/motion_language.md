@@ -17,8 +17,8 @@ Quy tắc duy nhất quan trọng nhất: **mỗi chuyển động là một m�
 - Nhiều phần tử so le pha đều nhau: particle thứ `i` offset `(i / N) · LOOP` — tự nhiên và loop hoàn hảo.
 - **Tốc độ mang nghĩa**: đường nhanh thì lướt, đường chậm thì ì rõ rệt — người xem *cảm* được latency/throughput thay vì đọc nó.
 - **Tương tác có phản hồi**: khi phần tử A chạm phần tử B, B phải phản ứng (pulse, loé sáng, counter nhảy, đổi trạng thái). Không có gì đi xuyên qua hệ thống mà hệ thống trơ ra.
-- **Accent bám theo thứ đang xảy ra**, và di chuyển khi tiêu điểm di chuyển. Nó là đèn rọi chứ không phải sơn — không dính vĩnh viễn vào phần tử nào.
-- **Xong việc thì nhả màu.** Thứ đã hoàn thành trả accent lại cho thứ đang chạy (trạng thái `done` trong `style_guide.md`). Accent là đèn rọi, không phải huy chương.
+- **ĐỘ SÁNG bám theo thứ đang xảy ra** — không phải màu. Màu dính vĩnh viễn vào phần tử vì nó là *danh tính*; thứ di chuyển khi tiêu điểm di chuyển là độ sáng + glow. Đèn rọi vẫn còn đó, chỉ là nó không đổi hue của ai cả.
+- **Xong việc thì tắt sáng.** Thứ đã hoàn thành nhả độ sáng lại cho thứ đang chạy (trạng thái `done` trong `style_guide.md`). Thiếu nó thì cả khung sáng trưng và hết còn chỗ nào để nhìn.
 - **Tương phản mã hoá bằng hình học, không bằng hue**: độ dài, số lượng, thời lượng. Ba thứ đó không nói dối được.
 
 ## Bộ động từ chuyển động (chọn theo nghĩa cần diễn đạt)
@@ -40,13 +40,13 @@ Quy tắc duy nhất quan trọng nhất: **mỗi chuyển động là một m�
 
 **MỘT TIẾNG = MỘT SỰ KIỆN CƠ CHẾ.** Đây chính là luật ngay trên ("mỗi chuyển động là một mệnh đề") áp cho tai. Không tiếng nào được tồn tại mà không ứng với một sự kiện có thật trong scene.
 
-- **Không nhạc, không ambience, không lời.** Chỉ SFX rời, mỗi cái neo vào một frame cụ thể.
-- **Không bao giờ mang thông tin.** TikTok/Reels autoplay **tắt tiếng** — video phải hiểu trọn vẹn khi câm. Âm thanh chỉ là thưởng thêm cho ai bật loa. Không có ngoại lệ.
-- **Tổng hợp từ oscillator, không sample pack** — đúng tinh thần "không icon pack" của `style_guide.md`. Xem `scripts/gen-sfx.mjs`: WAV chỉ là header + mảng PCM.
-- **Mọi file fade 2ms cuối về 0 tuyệt đối.** Cắt giữa chừng sóng là sinh tiếng click ký sinh.
-- **Biên loop phải im lặng tuyệt đối.** Không tiếng nào còn đang ngân tại frame cuối — **tai bắt mối nối giỏi hơn mắt nhiều**. Kiểm bằng ffprobe (xem `remotion_conventions.md`), vì loop khít ở tầng frame vẫn có thể khựng ở tầng container.
+> **Âm thanh không bao giờ mang thông tin.** Feed autoplay tắt tiếng — video phải hiểu trọn vẹn khi câm.
 
-Nhịp là kênh đo thứ tư, sau độ dài / số lượng / thời lượng: nghe 9 tiếng rồi nghe 2 tiếng là **cảm** được tương phản mà không cần đọc con số nào.
+Nhịp là kênh đo thứ tư, sau độ dài / số lượng / thời lượng: nghe 9 tiếng rồi nghe 2 tiếng là **cảm** được tương phản mà không cần đọc con số nào. Nhưng nó chỉ **nhắc lại** thứ mắt đã thấy.
+
+**Tên tiếng lấy từ bộ động từ ngay trên** — âm thanh và chuyển động là hai kênh của cùng một sự kiện, nên dùng chung một bộ từ vựng. `bounce` kêu giống nhau ở mọi video.
+
+Thư viện tiếng, 8 trục âm, kernel tổng hợp, luật fade/biên loop: **`sfx.md`**.
 
 ## Đường VẼ phải trùng khít đường BAY
 

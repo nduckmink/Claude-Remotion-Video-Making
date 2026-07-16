@@ -27,7 +27,7 @@ src/
     GridBg.tsx  Node.tsx  Packet.tsx  Connector.tsx
     Cylinder.tsx  RowCard.tsx  StatBar.tsx
   scripts/
-    gen-sfx.mjs             # sinh WAV bằng toán (xem motion_language.md)
+    gen-sfx.mjs             # copy từ Resource/sfx.md — sinh WAV bằng toán
   scenes/
     CachingLayers/
       index.tsx             # scene chính

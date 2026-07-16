@@ -14,22 +14,23 @@ Không gradient sặc sỡ, không 3D nặng, không lens flare, không ảnh bi
 
 ## Màu
 
-**Nền tối. Hoạ tiết sáng. Cái nào quan trọng thì cam đỏ.** Cả hệ nằm gọn trong một câu đó.
+**Nền tối, tâm sáng. Mỗi thứ một danh tính. Cam là của kênh.** Cả hệ nằm gọn trong câu đó.
 
 ```ts
 export const C = {
-  bg:      '#0B0A0C',   // near-black hơi ấm — KHÔNG navy
+  bg:     '#0B0A0C',   // mép khung — near-black hơi ấm, KHÔNG navy
+  bgLift: '#17151A',   // tâm khung — sáng hơn MỘT bậc (xem "Nền toả tròn")
 
-  // ── Hoạ tiết: ba bậc SÁNG, không bậc nào có màu ──
+  // ── Hoạ tiết trung tính: ba bậc SÁNG ──
   line:     'rgba(255,255,255,0.20)', // khung hệ thống lúc rỗi
   lineLive: 'rgba(255,255,255,0.50)', // khung đang tham gia
-  data:     '#E8EBF0',                // dữ liệu đang bay — trắng đặc
+  data:     '#E8EBF0',                // dữ liệu CHƯA mang danh tính — trắng đặc
 
-  // ── Accent: MỘT, và chỉ một ──
-  accent:   '#FF4A1A',   // cam đỏ — thứ quan trọng nhất frame này
+  // ── Cam: màu của KÊNH ──
+  brand:    '#FF4A1A',   // title + trạng thái hỏng. Không cấp cho phần tử nào.
 
-  bgPanel:  '#121113',                // nền card/pill — ĐỤC, xem dưới
-  gridDim:  'rgba(255,255,255,0.07)', // grid chấm, vignette
+  bgPanel:  '#1C1920',                // nền card — ĐỤC, và sáng hơn bgLift
+  gridDim:  'rgba(255,255,255,0.07)', // grid chấm
   ghost:    'rgba(255,255,255,0.025)',// chữ khổng lồ chìm ở nền
 
   text:      '#ECEEF3',
@@ -38,25 +39,82 @@ export const C = {
 };
 ```
 
-**Đặt tên theo vai trò, không theo màu.** `accent` / `data` / `line` — không phải `coral` / `teal` / `blue`. Palette đổi bao nhiêu lần cũng được mà không ai phải sửa một dòng code hay một dòng rule.
+**Đặt tên theo vai trò, không theo màu.** `brand` / `data` / `line` — không phải `coral` / `teal` / `blue`. Palette đổi bao nhiêu lần cũng được mà không ai phải sửa một dòng code hay một dòng rule.
 
-## Luật màu — accent là ĐÈN RỌI
+## Quy tắc chọn màu — SINH RA, đừng nhặt tay
 
-Luật quan trọng nhất file này.
+Nhặt màu bằng mắt hỏng hai đường: mỗi video một tông chẳng ăn nhập gì nhau, và trong cùng một video sẽ có một màu vô tình rực hơn mấy màu kia — thế là **màu giành mất việc chỉ đường của cơ chế**. Sinh bằng công thức thì hết cả hai.
 
-> **Mỗi frame, accent chỉ đánh dấu MỘT việc: thứ quan trọng nhất lúc này.**
-> Hệ thống, thứ đã xong, thứ đang chờ — **sáng, nhưng không màu**.
-> **Ngân sách: accent ≤ ~5% diện tích khung.**
+```ts
+// Vẽ trong oklch. Hai đại lượng, hai cách xử lý khác hẳn nhau:
+//   L  — KHOÁ CỨNG, mọi màu bằng nhau. Đây là thứ chống việc một màu tự nhiên
+//        hút mắt hơn màu khác. hsl không làm nổi: hsl(60,…) chói gấp mấy lần
+//        hsl(240,…) ở cùng một L, thế là cái vàng giành mất tiêu điểm mà chẳng
+//        vì lý do gì thuộc về cơ chế.
+//   C  — THẢ tới trần của TỪNG hue. Ép chung một C là dìm cả bảng xuống bằng
+//        hue yếu nhất, và ra một bảng màu nhợt.
+// Chrome của Remotion là 149 — oklch() chạy thẳng (cần 111+).
+const BRAND_H = 34.5;  // hue của brand #FF4A1A — ĐO ra, đừng đoán
+const GUARD   = 30;    // vùng cấm mỗi bên brand
+const ID_L    = 0.75;  // mọi màu định danh chung một L
+const ID_CAP  = 0.18;  // trần chroma — phải nằm DƯỚI brand (0.224)
 
-Màu trả lời câu *"nhìn đâu?"*, không trả lời câu *"cái này thuộc loại gì?"*.
+/** oklch → linear sRGB. Cần cái này để BIẾT màu có tràn không, thay vì đoán. */
+const oklchToRgb = (L: number, C: number, Hdeg: number) => {
+  const h = (Hdeg * Math.PI) / 180;
+  const a = C * Math.cos(h);
+  const b = C * Math.sin(h);
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+};
+const inSRGB = (L: number, C: number, H: number) =>
+  oklchToRgb(L, C, H).every((v) => v >= -0.0005 && v <= 1.0005);
 
-`accent` **không mang nghĩa "xấu"**. Nó mang nghĩa **"nhìn đây"**. Đừng để nó trượt thành màu-của-cái-sai — trượt là vỡ ngôn ngữ, vì rồi sẽ có video mà thứ quan trọng nhất lại là thứ đúng.
+/** Chroma đậm nhất mà hue này còn nằm trong sRGB, chặn trên ở ID_CAP. */
+const fitChroma = (H: number) => {
+  if (inSRGB(ID_L, ID_CAP, H)) return ID_CAP;
+  let lo = 0, hi = ID_CAP;
+  for (let i = 0; i < 40; i++) {
+    const m = (lo + hi) / 2;
+    if (inSRGB(ID_L, m, H)) lo = m; else hi = m;
+  }
+  return lo * 0.98; // lùi khỏi biên một chút
+};
 
-Màu ở khắp nơi ⇒ màu **hết còn chỉ đường**, tụt xuống thành trang trí chỉ vì có mặt quá nhiều. Một chấm cam trên bản vẽ trắng-đen hút mắt mạnh hơn mười chấm cam trên nền đầy màu — sức mạnh nằm ở **khan hiếm**, không ở độ rực.
+/** Màu định danh của phần tử thứ i trong n phần tử. */
+export const idColor = (i: number, n: number) => {
+  const H = (BRAND_H + GUARD + (360 - 2 * GUARD) * ((i + 0.5) / n)) % 360;
+  return `oklch(${ID_L} ${fitChroma(H)} ${H})`;
+};
+```
 
-### Tương phản không cần màu thứ hai
+**Vì sao phải dò gamut chứ không gõ đại một số.** Trần chroma của sRGB **không đều quanh vòng tròn**: ở `L=0.75`, hue tím-lam (~267) chỉ chịu được `0.128`, còn hue hồng-tím (~327) chịu tới `0.254` — **gấp đôi**. Ép chung một `C` thì phải lấy theo thằng yếu nhất, và cái hồng bị dìm xuống chưa tới một nửa khả năng của nó. Kết quả: bảng màu nhợt, đúng cái bệnh "trắng đen cam" mà bảng màu sinh ra để chữa.
 
-Bỏ cặp hot/cool là bỏ một công cụ. Đổi lại được ba cái mạnh hơn, và cả ba đều **đo được**:
+Vượt trần thì **Chrome lặng lẽ kẹp về biên** — không lỗi, không cảnh báo, chỉ là màu bạn thấy không phải màu bạn viết. Đo bằng cách render một ô rồi đọc pixel: kênh nào chạm `0` hoặc `255` là đã bị kẹp.
+
+Ra được (`n=4`): `#c2b011` `#15c9ac` `#6eb2fd` `#e880e8` — chroma `0.130–0.180`, cùng `L`. Không màu nào gần cam, không màu nào rực hơn hẳn màu nào.
+
+Ba luật, không nới:
+
+1. **Màu là DANH TÍNH, không phải trạng thái.** Nó trả lời *"cái này là ai"*, không trả lời *"cái này đang tốt hay xấu"*. Một phần tử giữ nguyên màu suốt loop. Thứ đổi theo trạng thái là **độ sáng, glow, opacity** — không phải hue.
+2. **Lúc rỗi thì tối.** Viền và đường mang màu định danh chỉ lên full khi đang có việc chạy qua; rỗi thì `${color}59`. Màu sáng thường trực là màu đã tụt xuống thành trang trí.
+3. **Cam là vùng cấm.** `idColor` không bao giờ sinh hue trong ±30° quanh brand. Cam chỉ thuộc hai chỗ: **title** (đứng yên, trên hairline) và **trạng thái hỏng** (nhấp nháy, dưới hairline). Tĩnh hay động là thứ tách chúng ra — mà luật header cấm mọi chuyển động ở trên, nên không bao giờ lẫn.
+
+Cú flash `brand` nổi hơn cả bảng màu **nhờ chroma, không nhờ độ sáng**: brand đo được là `oklch(0.666 0.224 34.5)` — nó *tối hơn* màu định danh (L 0.666 vs 0.75) nhưng đậm hơn mọi màu trong bảng. Đó chính là việc của `ID_CAP`: **nới trần chroma lên quá 0.224 là cú báo hỏng chìm nghỉm giữa đám màu.** Muốn bảng màu rực hơn nữa thì phải kéo `brand` rực lên trước, không phải nới trần.
+
+Kiểm nhanh: **bỏ hết màu đi thì mất thông tin gì?** Mất → màu đang làm việc. Không mất → màu đang trang trí, bỏ.
+
+Màu có việc thật thì mở ra thứ đơn sắc không nói nổi: khi màu mang một thuộc tính, **thiếu màu cũng thành một phát biểu** — một thứ trắng giữa đám có màu là thứ *chưa có* thuộc tính đó.
+
+### Màu KHÔNG đo được — hình học thì có
+
+Có bảng màu rồi vẫn cấm dùng nó để nói "nhanh/chậm", "nhiều/ít", "tốt/xấu". Tương phản mã hoá bằng **hình học**, và cả năm cách đều **đo được**:
 
 | Mã hoá bằng | Ví dụ |
 |---|---|
@@ -70,19 +128,34 @@ Năm thứ này **không nói dối được**. Màu thì nói dối rất dễ 
 
 Và tương phản **không được viết thành chữ** — không eyebrow, không caption. Viết ra là animation đã thua.
 
-### Nền card phải ĐỤC
+### Nền toả tròn
+
+Nền không phẳng: **tâm khung sáng hơn mép**, để mắt tự rơi vào giữa — chỗ cơ chế đang chạy.
+
+```ts
+// MỘT gradient làm cả hai việc: nâng tâm VÀ tối mép.
+background: `radial-gradient(ellipse 78% 52% at 50% 48%, ${C.bgLift} 0%, ${C.bg} 72%)`
+```
+
+Không chồng hai lớp: nâng tâm lên `bgLift` rồi tắt dần về `bg` ở mép **chính là** vignette, chỉ viết ngược lại. Grid chấm nằm trên nó.
+
+Tâm đặt ở `48%` chứ không phải `50%` — stage bắt đầu từ `y=310`, nên tâm hình học của khung nằm thấp hơn tâm của bản vẽ.
+
+Biên độ phải nhỏ: `bg` → `bgLift` là **một bậc**, không phải một cú loé. Nền mà nhìn thấy được là nền đang giành việc.
+
+### Nền card phải ĐỤC — và phải sáng hơn TÂM
 
 `bgPanel` là màu đặc, **không** phải `rgba(...)`. Card mà trong suốt thì connector chạy xuyên qua nó — nhìn ra ngay là "mấy hình vẽ chồng lên nhau", không phải một sơ đồ.
 
-Giá trị hiện tại đúng bằng `rgba(255,255,255,0.03)` trộn sẵn lên `bg`: **trông y hệt**, nhưng che được. Đổi `bg` thì phải trộn lại `bgPanel`.
+Từ khi nền có tâm sáng, thêm một ràng buộc: **`bgPanel` phải sáng hơn `bgLift`.** Card tối hơn chỗ sáng nhất của nền thì nó thành cái **lỗ** giữa khung — mà card thì thường nằm đúng chỗ đó. Đây là lý do `bgPanel` không còn là `rgba(255,255,255,0.03)` trộn lên `bg` như trước.
 
-Luật chung: **thành phần nằm trên đường đi thì phải che được đường đi.**
+Đổi `bg` hay `bgLift` thì phải trộn lại `bgPanel`. Luật chung: **thành phần nằm trên đường đi thì phải che được đường đi.**
 
 ### Hoạ tiết phải TỰ GÁNH
 
-Không còn màu đỡ lưng ⇒ line art phải tự đọc được: `line` là `0.20`, không phải `0.10`. Khung mà chỉ nhìn ra nhờ accent là khung **sống ký sinh** — bỏ accent đi là nó tàng hình.
+Line art phải tự đọc được **khi bỏ hết màu đi**: `line` là `0.20`, không phải `0.10`. Khung mà chỉ nhìn ra nhờ màu là khung **sống ký sinh**.
 
-Ba bậc sáng (`line` → `lineLive` → `data`) làm đúng việc mà glow từng làm: phân cấp thị giác. Accent chỉ còn lo mỗi việc chỉ đường.
+Ba bậc sáng (`line` → `lineLive` → `data`) lo phân cấp thị giác; màu lo danh tính. Hai kênh, hai việc, không giẫm chân nhau — đó là lý do bảng màu không nuốt mất ba bậc này.
 
 ## 8 trục — vẽ bất cứ thứ gì
 
@@ -92,9 +165,9 @@ Mỗi trục là một **câu hỏi**, không phải một ô tra.
 |---|---|---|
 | **Fill** | rỗng ↔ đặc | Nó *chứa* thứ khác, hay nó *bị chứa*? → **hệ thống thì rỗng, dữ liệu thì đặc** |
 | **Bo góc** | 999 → 16 → 4 → 0 | Nó nhẹ và linh hoạt, hay nặng và nền tảng? Càng mềm càng nhẹ, càng góc cạnh càng là nền móng. |
-| **Độ dày viền** | 1.5 → 2 → 3px | Nó là nền, là chuẩn, hay **đang được nhấn**? 3px đi kèm accent. |
+| **Độ dày viền** | 1.5 → 3 → 6px | Nó là nền, là chuẩn, hay **đang được nhấn**? Bậc dày nhất đi kèm `brand`. |
 | **Nét** | solid ↔ dashed | Nó có thật và chắc chắn, hay là ranh giới logic / async / tiềm năng / optional? |
-| **Màu** | đơn sắc ↔ accent | Nó có **đang xảy ra lúc này** không? (xem luật đèn rọi) |
+| **Màu** | trung tính ↔ danh tính | Nó là **một ai cụ thể**, hay chỉ là hạ tầng / dữ liệu chưa mang tên? (xem quy tắc chọn màu) |
 | **Glow** | không ↔ có | Nó có đang **sống** không? |
 | **Opacity** | 100 → 60 → 30 | Nó còn vai trò không? |
 | **Kích thước** | — | Nó quan trọng cỡ nào **trong câu chuyện** — không phải ngoài đời thật. |
@@ -111,16 +184,16 @@ Mọi asset đều có vòng đời. Đổi trạng thái **đúng lúc logic x�
 
 | Trạng thái | Thể hiện |
 |---|---|
-| **idle** | viền `line`, không glow, breathe rất nhẹ |
-| **active** | viền `accent` + glow — *đang xảy ra lúc này* |
-| **done** | viền `line`, chữ `text` trắng, không glow — đã xong thì **trả accent lại** |
+| **idle** | viền màu định danh mờ (`${c}59`), không glow, breathe rất nhẹ |
+| **active** | viền màu định danh **full** + glow — *đang xảy ra lúc này* |
+| **done** | về idle, chữ `text` trắng, không glow — xong thì thôi sáng |
 | **success** (khoảnh khắc) | flash trắng `data` + ripple — xong việc thì im, không ăn mừng |
-| **fail** (khoảnh khắc) | flash `accent` + ripple — hỏng thì đúng là thứ đáng nhìn nhất |
+| **fail** (khoảnh khắc) | flash `brand` + ripple — hỏng thì đúng là thứ đáng nhìn nhất |
 | **dead/disabled** | ~30% opacity, không breathe |
 
-`done` là trạng thái giữ cho luật đèn rọi không vỡ: xong việc thì nhả màu ra cho thứ đang chạy. Thiếu nó thì accent cứ tích tụ tới khi cả khung có màu.
+Cả sáu dòng đổi **độ sáng**, không đổi **hue**. Đó là cách màu vừa làm danh tính vừa không giẫm lên trạng thái: một phần tử xanh thì lúc rỗi, lúc chạy, lúc chết đều xanh — chỉ khác nó sáng cỡ nào.
 
-`success` = trắng còn `fail` = accent **không** phải vì accent nghĩa là "xấu" — mà vì một cú hỏng *đúng là* thứ quan trọng nhất frame đó. Vẫn là luật đèn rọi, không phải bảng phân loại.
+`fail` = `brand` là ngoại lệ duy nhất, và nó **không** có nghĩa cam là màu-của-cái-sai. Nó là chỗ cam được phép xuống dưới hairline: một cú hỏng đúng là thứ đáng nhìn nhất frame đó, và cam là màu duy nhất không thuộc về ai — nên nó không bị nhầm thành danh tính của phần tử đang hỏng.
 
 ## Glow & shadow
 
@@ -133,7 +206,9 @@ boxShadow: `0 0 24px ${color}66, 0 0 8px ${color}99`
 textShadow: `0 0 20px ${color}55`
 ```
 
-Nền: vignette radial rất nhẹ và/hoặc grid chấm mờ (`gridDim`, cell ~90px). Có thể thêm một chữ khổng lồ chìm (`ghost`, ~600px) mang tên khái niệm — nó là chủ đề, không phải trang trí. Cả ba **không bao giờ nổi hơn nội dung**.
+Nền: gradient toả tròn (xem "Nền toả tròn") + grid chấm mờ (`gridDim`, cell ~90px). Có thể thêm một chữ khổng lồ chìm (`ghost`, ~600px) mang tên khái niệm — nó là chủ đề, không phải trang trí. Cả ba **không bao giờ nổi hơn nội dung**.
+
+Chữ ghost ở ~600px chỉ chứa nổi khoảng **3 ký tự** trong 1080 — tên dài hơn thì bỏ hẳn, đừng cắt cụt. Cắt cụt là hết còn là chủ đề.
 
 ## Typography
 
@@ -147,7 +222,9 @@ export const F = {
 - **Label thành phần**: mono 30–34px uppercase trắng + dòng mô tả 22–24px `textDim` lowercase bên dưới.
 - **Số liệu lớn** (stat): mono 44–56px, màu theo ngữ nghĩa.
 - **Tag/timing**: mono 22–26px, uppercase, letterSpacing `0.12em`.
-- **Đánh số** (`001`, `002`…): mono 20–22px, accent, đặt trên phần tử nó đánh dấu. Bản vẽ kỹ thuật thì có số.
+- **Đánh số** (`001`, `002`…): mono 20–22px, màu định danh của chính phần tử nó đánh dấu, đặt ngay trên phần tử đó. Bản vẽ kỹ thuật thì có số.
+
+Nhãn nhiều chữ **xuống dòng theo dấu cách**, nên cái phải đo là **từ dài nhất**, không phải cả câu. `"Báo cáo doanh thu"` trong node 190px không hỏng vì câu dài 17 ký tự — nó hỏng hay không là do `"DOANH"` có lọt không.
 
 ### Nhãn GỌI TÊN, không PHÁN XÉT
 
@@ -172,12 +249,14 @@ Vị trí và vùng chiếm chỗ xem `scene_composition.md`.
 | Dòng | Spec |
 |---|---|
 | **Handle** | mono 22px, `textFaint`. Cố định `@duckmink_nguyen` — chỉ vậy. Không avatar, không logo, không khung, không đánh số tập. |
-| **Title** | Inter 700, 64–88px, letterSpacing `-0.02em`, màu `text`. Tên khái niệm, không phải câu. |
+| **Title** | Inter 700, 64–88px, letterSpacing `-0.02em`, màu **`brand`**. Tên khái niệm, không phải câu. |
 
-> **Header ĐƠN SẮC. Accent không bao giờ lên header.**
-> Header là chỗ để **đọc**, stage là chỗ để **nhìn**. Accent trả lời câu "nhìn đâu?" — mà câu trả lời không bao giờ là cái tên video.
-> Header lại còn **tĩnh suốt loop**: cho nó accent là để một vệt cam đứng yên cạnh tranh với vệt cam đang chạy, suốt cả loop. Đèn rọi mà không tắt thì hết là đèn rọi.
-> Nhờ vậy thứ **màu cam đầu tiên** người xem thấy luôn là **cơ chế**.
+> **Title mang màu `brand`. Đó là chỗ duy nhất trên header có màu.**
+> Handle vẫn `textFaint`, hairline vẫn `line`. Cam ở đây là **chữ ký của kênh**, không phải một lời chỉ đường: nó nằm đúng một chỗ, đúng một cỡ, ở đúng vị trí ấy trong mọi video — người xem đọc nó một lần rồi thôi.
+>
+> Cam trên header không tranh việc với cam dưới stage, vì hai thứ **khác nhau ở chuyển động chứ không ở màu**: header tĩnh tuyệt đối suốt loop (luật ngay dưới đây), nên **cam nào nhúc nhích thì cam đó là cơ chế**. Cam đứng yên ở đỉnh khung là tên kênh.
+>
+> Hệ quả: cấm mọi thứ cam **động** ở trên hairline. Không title nhấp nháy, không breathe, không sweep. Mất cái tĩnh là mất luôn thứ phân biệt hai vai — và lúc đó thì đúng là một vệt cam đứng yên cạnh tranh với vệt cam đang chạy, suốt cả loop.
 
 ### Header KHÔNG chứa gì khác
 
