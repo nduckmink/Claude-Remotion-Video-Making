@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(git --version)",
+      "Bash(npx create-video@latest --yes --blank --no-tailwind nplusone)",
+      "Bash(npm uninstall *)",
+      "Bash(npx remotion *)",
+      "Bash(npm i *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\(p.dependencies,null,1\\)\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(rm -f src/Composition.tsx)",
+      "Bash(npx tsc *)",
+      "Bash(sed -i 's/durationInFrames={LOOP}/durationInFrames={LOOP + 60}/' src/Root.tsx)",
+      "Bash(sed -i 's/durationInFrames={LOOP + 60}/durationInFrames={LOOP}/' src/Root.tsx)",
+      "Bash(rm -f out/f*.png out/g0.png out/g275.png out/g300.png out/g360.png)",
+      "Bash(mv out/g320.png out/payoff.png)",
+      "Bash(grep -rn \"hot\\\\b\\\\|cool\\\\b\\\\|stroke\\\\`\\\\|strokeDim\\\\|C.stroke\\\\|warn\" .)",
+      "Bash(git rm *)",
+      "Bash(git -c user.name=\"duckmink\" -c user.email=\"minhloz119@gmail.com\" commit -q --amend --no-edit)",
+      "Bash(git stash *)",
+      "Bash(git worktree *)"
+    ]
+  }
+}
