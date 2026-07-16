@@ -25,7 +25,7 @@ Mục tiêu: từ một prompt (một khái niệm kiến trúc / công nghệ /
 ## Mặc định
 
 - Khung hình: **1080×1920 (9:16 dọc)**, 30fps. User có thể yêu cầu 16:9 hoặc 1:1.
-- **Header block cố định** trên mọi video: handle `@duckmink_nguyen` → eyebrow (cặp tương phản) → title. Ba dòng, tĩnh hoàn toàn, đơn sắc. Chiếm `y 100–330`, stage bắt đầu từ `y≥370`. **Không** có dòng hook — aha moment là việc của animation. Xem `style_guide.md` + `scene_composition.md`.
+- **Header block cố định** trên mọi video: handle `@duckmink_nguyen` → title. **Hai dòng**, tĩnh hoàn toàn, đơn sắc. Chiếm `y 100–270`, stage bắt đầu từ `y≥310`. Không hook, không eyebrow, không số tập — mọi thứ khác phải nhìn thấy được **trong cơ chế**, không viết ra. Xem `style_guide.md` + `scene_composition.md`.
 - Video là **loop liền mạch** (seamless), không lời thoại, không nhạc, không ambience — hình ảnh tự kể chuyện.
 - **SFX được phép**, theo luật trong `motion_language.md`: một tiếng = một sự kiện cơ chế, tổng hợp từ oscillator, và **không bao giờ mang thông tin** — feed autoplay tắt tiếng nên video phải hiểu trọn vẹn khi câm.
 - Ngôn ngữ text trên video: **theo prompt từng video**. Prompt không nói gì → mặc định tiếng Anh (label kỹ thuật tự nhiên hơn).

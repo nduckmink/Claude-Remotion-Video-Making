@@ -22,18 +22,62 @@ src/
   lib/
     tokens.ts               # C (màu), F (font) — theo style_guide.md
     motion.ts               # ease, pulse(), loopPhase() dùng chung
-  components/               # primitives tái sử dụng
-    Header.tsx              # header block cố định — MỌI scene phải render
-    Node.tsx  Pill.tsx  StatCard.tsx  Counter.tsx
-    Connector.tsx  LayerRow.tsx  Tag.tsx  GridBg.tsx
+  components/               # primitives tái sử dụng — đang có:
+    Header.tsx              # handle + title, MỌI scene render
+    GridBg.tsx  Node.tsx  Packet.tsx  Connector.tsx
+    Cylinder.tsx  RowCard.tsx  StatBar.tsx
+  scripts/
+    gen-sfx.mjs             # sinh WAV bằng toán (xem motion_language.md)
   scenes/
     CachingLayers/
       index.tsx             # scene chính
       constants.ts          # LOOP, layout, số liệu của riêng scene
-      v2/index.tsx          # bản revise (xem scene_revision.md)
+      sim.ts                # mô phỏng cơ chế, nếu scene có cơ chế chạy được
+      verify.ts             # chốt chặn tự động — xem dưới
+      v2/                   # bản revise (xem scene_revision.md)
 ```
 
 Primitives dùng chung đặt ở `components/`; scene mới **ưu tiên tái sử dụng** primitives có sẵn trước khi viết mới. Viết mới cái gì đủ tổng quát thì đưa vào `components/`.
+
+## Mô phỏng, đừng tính tay
+
+Scene nào có **cơ chế chạy được** (hàng đợi, round trip, tranh chấp tài nguyên) thì viết `sim.ts`: chạy cơ chế đó từng frame một, xuất ra trạng thái mỗi frame. Component chỉ **đọc** `STATES[frame]` và vẽ.
+
+```ts
+const simulate = (): State[] => { /* vòng lặp f = 0..LOOP */ };
+export const STATES = simulate();          // chạy MỘT lần ở module level
+export const PEAK_MS = Math.max(...STATES.map((s) => s.latencyMs));
+```
+
+Lý do không phải sự thanh lịch — mà là **toán tay nói dối**:
+
+- Tính tay: hàng đợi phình 7 gói. Mô phỏng: **10**. Chênh 3 vì khi đống dâng, đám packet đang bay bị "vạch tiếp đất" dâng lên đón sớm — cả pipeline đổ ập vào. Không mô phỏng thì đống **đâm xuyên** phần tử phía trên mà không ai biết.
+- Số chốt gõ tay `200ms` trong khi đỉnh thật là **225ms**. Số nào hiện trên màn hình thì **tính ra từ `STATES`**, đừng gõ.
+
+## `verify.ts` — chốt chặn tự động
+
+Mỗi scene có cơ chế thì có một `verify.ts` liệt kê những điều **phải đúng**, và exit 1 nếu sai:
+
+```bash
+npx esbuild src/scenes/<Name>/verify.ts --bundle --platform=node \
+  --outfile=<tmp>/v.cjs --log-level=error && node <tmp>/v.cjs
+```
+
+Kiểm những thứ mắt không thấy được:
+
+- **Lời hứa của scene**: "client 1 không bao giờ dính 429" — quét cả 600 frame, không phải liếc vài cái.
+- **Hình học**: đống hàng đợi có chạm phần tử phía trên không? Còn dư mấy chỗ?
+- **Âm thanh**: tiếng cuối có tắt trước frame cuối không?
+- **Loop**: trạng thái ở hai đầu có bằng nhau không?
+
+Chạy verify **trước khi render**. Đổi một hằng số là chạy lại — nó tồn tại để bắt cái mà bạn quên cộng.
+
+## Bẫy đã trả giá
+
+- **`pathLength` trên `<rect>` không chạy trong Chrome headless.** Progress ring vẽ bằng `<rect pathLength={1}>` ra **trắng trơn**, không báo lỗi gì. Dùng `<path>` — chỗ đó thì chạy.
+- **Đừng nuốt lỗi bằng `2>/dev/null` hay `| head`.** `head` luôn exit 0, nên `cmd | head && echo OK` in ra "OK" ngay cả khi `cmd` fail. Đọc **exit code**, đừng đọc chữ.
+- **`npx remotion add <pkg>` fail trên Windows** (`spawn npm ENOENT`) — cài thẳng bằng `npm i --save-exact <pkg>@<version>`.
+- **Đo bằng pixel, đừng đo bằng mắt.** Nghi ngờ gì thì render `--scale=1` rồi đọc pixel bằng Node: che có kín không, ring có chạy đúng chiều không, biên loop có im không. Mắt nhìn ảnh 0.5× thì cái gì cũng "trông ổn".
 
 ## Quy tắc code
 
@@ -63,7 +107,21 @@ export const pulse = (frame: number, loop: number, k = 1) =>
 ## Kiểm tra trước khi giao
 
 1. `npx remotion still <Id> --frame=0` và `--frame=<LOOP/2>` — soi bố cục, safe area, chính tả label.
-2. Seamless: so sánh still tại frame `0` và frame `LOOP - 1` (hoặc render thử 2 vòng) — không được khớp nối giật.
+2. **Seamless: so frame `0` với frame `LOOP`, KHÔNG phải `LOOP - 1`.**
+
+   Frame `LOOP-1` **phải khác** frame 0 — đúng một bước chuyển động. So hai cái đó rồi kết luận "vỡ loop" là bài test sai, không phải code sai.
+
+   `LOOP` nằm ngoài composition nên phải nới duration tạm rồi trả lại:
+
+   ```bash
+   sed -i 's/durationInFrames={LOOP}/durationInFrames={LOOP + 60}/' src/Root.tsx
+   npx remotion still <Id> out/f0.png   --frame=0   --scale=0.5
+   npx remotion still <Id> out/fL.png   --frame=<LOOP> --scale=0.5
+   sed -i 's/durationInFrames={LOOP + 60}/durationInFrames={LOOP}/' src/Root.tsx
+   # hash hai file: TRÙNG KHÍT thì mới là seamless
+   ```
+
+   So bằng **hash**, không bằng mắt: hai frame lệch một chút thì mắt không thấy, byte thì thấy.
 3. Render: `npx remotion render <Id> out/<id>.mp4 --muted`.
 
    **`--muted` là bắt buộc với video câm.** Remotion mặc định chèn một audio track **câm** vào mọi render. Nó ăn ~35% dung lượng cho không gì cả, và tệ hơn: nó kéo container dài hơn video (12.05s vs 12.00s) → player **đứng hình ~1.6 frame** trước khi loop lại. Loop khít ở tầng frame vẫn có thể khựng ở tầng container — nhớ kiểm cả hai:

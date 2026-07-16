@@ -29,8 +29,6 @@ import {
   AUTHORS,
   BAR,
   DB,
-  EYEBROW_L,
-  EYEBROW_R,
   FLIP_START,
   INSIGHT,
   INSIGHT_Y,
@@ -38,7 +36,6 @@ import {
   LINE_Y0,
   LINE_Y1,
   PAYOFF_START,
-  PX_PER_MS,
   RESET_START,
   ROW,
   ROW_STAGGER_A1,
@@ -107,13 +104,6 @@ export const NPlusOne: React.FC = () => {
   const isBatch = Boolean(a2 && a2.index === 1);
   const packetColor = isList ? C.data : C.accent;
 
-  // ─── Eyebrow = đồng hồ báo giai đoạn (thay hẳn phase tag) ────────────
-  const side = interpolate(
-    frame,
-    [FLIP_START, A2_START, RESET_START, RESET_START + 12],
-    [0, 1, 1, 0],
-    CLAMP,
-  );
 
   // ─── Scoreboard ──────────────────────────────────────────────────────
   const statsOp = interpolate(
@@ -183,12 +173,7 @@ export const NPlusOne: React.FC = () => {
           Để dành cho scene có khoảng trống thật. */}
       <GridBg />
 
-      <Header
-        left={EYEBROW_L}
-        right={EYEBROW_R}
-        side={side}
-        title={TITLE}
-      />
+      <Header title={TITLE} />
 
       <Node
         x={APP.x}
@@ -308,24 +293,26 @@ export const NPlusOne: React.FC = () => {
       <StatBar
         x={BAR.x}
         y={BAR.row1Y}
-        w={ms1 * PX_PER_MS}
         track={BAR.track}
         h={BAR.h}
         label="N+1 · lazy"
-        queries={q1}
-        ms={ms1}
+        note={`${q1} ${q1 === 1 ? "QUERY" : "QUERIES"}`}
+        value={`${ms1.toFixed(0)}ms`}
+        fill={ms1 / A1_MS}
+        live={ms1 >= 0.5}
         locked={locked1}
         opacity={statsOp}
       />
       <StatBar
         x={BAR.x}
         y={BAR.row2Y}
-        w={ms2 * PX_PER_MS}
         track={BAR.track}
         h={BAR.h}
         label="eager · batched"
-        queries={q2}
-        ms={ms2}
+        note={`${q2} ${q2 === 1 ? "QUERY" : "QUERIES"}`}
+        value={`${ms2.toFixed(0)}ms`}
+        fill={ms2 / A1_MS}
+        live={ms2 >= 0.5}
         locked={locked2}
         opacity={statsOp}
       />

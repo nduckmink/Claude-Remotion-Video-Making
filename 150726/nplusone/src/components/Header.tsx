@@ -4,10 +4,9 @@ import { BRAND, C, F } from "../lib/tokens";
 // Căn GIỮA trên trục x=540: 9:16 chỉ có một sống lưng dọc, và stage nằm trên đó.
 export const HEADER = {
   handleY: 100,
-  eyebrowY: 142,
-  titleY: 190,
-  hairlineY: 330,
-  stageY: 370,
+  titleY: 142,
+  hairlineY: 270,
+  stageY: 310,
 } as const;
 
 const centered = {
@@ -18,22 +17,16 @@ const centered = {
 } as const;
 
 /**
- * Header block — BẮT BUỘC trên mọi video. Ba dòng, tĩnh hoàn toàn.
+ * Header block — HAI dòng: handle + title. Tĩnh hoàn toàn, đơn sắc.
  *
- * ĐƠN SẮC: accent không bao giờ lên header. Thứ cam đầu tiên người xem
- * thấy phải là cơ chế, không phải cái tên. Phân cấp do ba bậc sáng lo.
+ * ĐƠN SẮC: accent không bao giờ lên header. Thứ cam đầu tiên người xem thấy
+ * phải là cơ chế, không phải cái tên.
  *
- * KHÔNG có dòng hook, KHÔNG đánh số tập. Aha moment thuộc về animation —
- * viết nó thành câu ở giây 0 là spoil chính mình, và là chữ giành việc của hình.
+ * KHÔNG hook, KHÔNG eyebrow, KHÔNG số tập. Cả ba đã từng có và đều bị bỏ vì
+ * cùng một lý do: chúng VIẾT RA thứ mà animation phải TỰ CHO THẤY.
+ * Muốn thêm chữ vào đây = dấu hiệu stage kể chưa đủ rõ. Sửa stage.
  */
-export const Header: React.FC<{
-  /** cặp tương phản — vế đang chạy sáng 100%, vế kia mờ 30% */
-  left: string;
-  right: string;
-  /** 0 = vế trái đang chạy, 1 = vế phải đang chạy */
-  side: number;
-  title: string;
-}> = ({ left, right, side, title }) => (
+export const Header: React.FC<{ title: string }> = ({ title }) => (
   <>
     <div
       style={{
@@ -46,26 +39,6 @@ export const Header: React.FC<{
       }}
     >
       {BRAND.handle}
-    </div>
-
-    {/* eyebrow = đồng hồ báo giai đoạn, không phải chữ trang trí */}
-    <div
-      style={{
-        ...centered,
-        top: HEADER.eyebrowY,
-        display: "flex",
-        justifyContent: "center",
-        gap: 18,
-        fontFamily: F.mono,
-        fontSize: 28,
-        textTransform: "uppercase",
-        letterSpacing: "0.25em",
-        whiteSpace: "nowrap",
-      }}
-    >
-      <span style={{ color: C.text, opacity: 1 - side * 0.7 }}>{left}</span>
-      <span style={{ color: C.textFaint }}>vs</span>
-      <span style={{ color: C.text, opacity: 0.3 + side * 0.7 }}>{right}</span>
     </div>
 
     <div

@@ -48,6 +48,35 @@ Quy tắc duy nhất quan trọng nhất: **mỗi chuyển động là một m�
 
 Nhịp là kênh đo thứ tư, sau độ dài / số lượng / thời lượng: nghe 9 tiếng rồi nghe 2 tiếng là **cảm** được tương phản mà không cần đọc con số nào.
 
+## Đường VẼ phải trùng khít đường BAY
+
+Vẽ connector một đằng rồi cho packet bay một nẻo là **nói dối người xem** — sơ đồ nói "đi lối này", mắt thấy "đi lối kia".
+
+Cách rẻ nhất để không bao giờ lệch: **cho cả hai dùng chung một hàm**.
+
+```ts
+// constants.ts — sim gọi để bay, SVG gọi để vẽ. Không thể lệch nhau.
+export const rejectAt = (owner, t) => ({ x: ..., y: ... });
+```
+
+Với đường cong hội tụ, có một mẹo vừa vặn đáng nhớ: **đặt điểm điều khiển bezier ở 1/3 và 2/3 chiều dọc** thì `y` trở thành **tuyến tính** theo tham số bezier, còn `x` rơi đúng vào **smoothstep**:
+
+```ts
+// SVG:  C ${x0} ${y0 + h/3}, ${x1} ${y1 - h/3}, ${x1} ${y1}
+// Sim:  x = lerp(x0, x1, smoothstep((y - y0) / h))     // y vẫn += SPEED đều
+export const smoothstep = (t: number) => t * t * (3 - 2 * t);
+```
+
+Packet rơi đều như mọi packet khác mà bám đường cong **chính xác tới từng pixel** — không phải đo lại độ dài cung.
+
+Đường không thẳng thì **đo độ dài cung bằng lấy mẫu** rồi chia cho `SPEED` để ra số frame, đừng đoán:
+
+```ts
+let len = 0, p = curveAt(0);
+for (let i = 1; i <= 48; i++) { const q = curveAt(i / 48); len += Math.hypot(q.x - p.x, q.y - p.y); p = q; }
+export const FRAMES = Math.round(len / SPEED);   // giữ ĐÚNG một tốc độ cho mọi thứ
+```
+
 ## Easing & timing
 
 ```ts

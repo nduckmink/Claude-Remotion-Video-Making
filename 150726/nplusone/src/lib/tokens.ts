@@ -16,7 +16,10 @@ export const C = {
   // Nghĩa là "NHÌN ĐÂY", không phải "xấu". Đừng để nó trượt.
   accent: "#FF4A1A",
 
-  bgPanel: "rgba(255,255,255,0.03)",
+  // ĐỤC, không phải rgba: card phải CHE được đường đi bên dưới nó.
+  // Giá trị = rgba(255,255,255,0.03) trộn sẵn lên bg — nhìn y hệt bản trong
+  // suốt, nhưng không để lộ path chạy xuyên qua.
+  bgPanel: "#121113",
   gridDim: "rgba(255,255,255,0.07)",
   ghost: "rgba(255,255,255,0.025)",
 

@@ -10,14 +10,16 @@ Prompt là điểm xuất phát, không phải trần. Claude được phép ch�
 
 ## Trước khi thiết kế, trả lời 5 câu
 
-**Q4 phải hiện lên màn hình** thành **eyebrow** trong header — cặp tương phản, viết bằng chữ. Điền không nổi eyebrow bằng một cặp tương phản thật thì **chưa có scene** — chứ không phải "video này thiếu header". Xem `style_guide.md`.
+**Không câu nào trong năm câu được viết lên màn hình.** Cả năm đều phải **nhìn thấy được trong cơ chế đang chạy**.
 
-**Q1 thì ngược lại: KHÔNG được viết ra.** Aha moment thuộc về animation. Viết nó thành một câu trên đầu video là spoil chính mình và vi phạm "hình trước, chữ sau" ngay dưới đây. Nếu phải nói ra bằng chữ thì animation chưa làm xong việc.
+Đây là cái phanh: nếu bạn thấy cần một dòng chữ để nói ra aha moment (Q1) hay để nói ra cặp tương phản (Q4), thì **animation chưa làm xong việc** — sửa animation, đừng thêm caption. Header chỉ có handle + title, và title chỉ gọi tên khái niệm. Xem `style_guide.md`.
+
+Đã trả giá cho bài học này ba lần: hook pill, eyebrow, số tập — thêm vào rồi phải bỏ, cả ba đều vì cùng một lý do.
 
 1. **Aha moment là gì?** Một insight duy nhất người xem phải nhớ được. Toàn bộ scene phục vụ insight đó — và **chỉ** scene, không phải caption.
 2. **Cái gì đang di chuyển hoặc thay đổi?** Dữ liệu chảy, trạng thái đổi, thứ tự xáo, kết nối hình thành... Sự thay đổi đó chính là lời giải thích — scene nào không có gì thay đổi thì chưa phải animation.
 3. **Đâu là con số kể chuyện?** Số cụ thể mạnh hơn mô tả chung. Không phải khái niệm nào cũng cần số — nhưng khi có, chọn số thực tế, đúng bậc độ lớn.
-4. **Đâu là tương phản?** Nhanh/chậm, trước/sau, có/không, thành công/thất bại. Tương phản mã hoá bằng màu là công cụ giải thích mạnh nhất. → **eyebrow**.
+4. **Đâu là tương phản?** Nhanh/chậm, trước/sau, có/không, thành công/thất bại. Mã hoá bằng **hình học** — độ dài, số lượng, thời lượng, đường đi khác nhau — chứ không bằng chữ.
 5. **Bỏ được gì?** Mỗi phần tử phải trả lời được "nó giúp người xem hiểu gì?". Không thì cắt.
 
 ## Ràng buộc cứng

@@ -71,11 +71,23 @@ const hit = render(75, (t, p) => {
   return body * env * 0.26 * (1 - p * 0.2);
 });
 
+// Hai file này dùng cho CẢ HAI scene, vì chúng nói cùng một nghĩa:
+//   query = một request rời client   ·   hit = nó được trả lời
+// NPlusOne: nghe ra 9 vòng vs 2 vòng.
+// RateLimit: nghe ra khoảng hỏi→đáp của app giãn ra rồi co lại.
+//
+// Từng thử thêm tick (server xử lý xong) + reject (429) cho RateLimit rồi bỏ:
+// đo ra nhịp server act 2 và act 3 giống hệt nhau (3.3 vs 3.4 tiếng/s) vì act 3
+// server vẫn chạy hết cỡ để RÚT CẠN hàng đợi. Tiếng không kể được gì → cắt.
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, "query.wav"), wav(query));
 fs.writeFileSync(path.join(OUT, "hit.wav"), wav(hit));
 
 const ms = (a) => ((a.length / SR) * 1000).toFixed(1);
 const peak = (a) => Math.max(...Array.from(a, Math.abs)).toFixed(3);
-console.log(`query.wav  ${ms(query)}ms  peak ${peak(query)}  tail ${query[query.length - 1]}`);
-console.log(`hit.wav    ${ms(hit)}ms  peak ${peak(hit)}  tail ${hit[hit.length - 1]}`);
+const show = (n, a) =>
+  console.log(
+    `${n.padEnd(11)} ${ms(a).padStart(5)}ms  peak ${peak(a)}  tail ${a[a.length - 1]}`,
+  );
+show("query.wav", query);
+show("hit.wav", hit);
