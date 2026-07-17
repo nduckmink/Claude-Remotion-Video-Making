@@ -103,7 +103,14 @@ Ra được (`n=4`): `#c2b011` `#15c9ac` `#6eb2fd` `#e880e8` — chroma `0.130�
 Ba luật, không nới:
 
 1. **Màu là DANH TÍNH, không phải trạng thái.** Nó trả lời *"cái này là ai"*, không trả lời *"cái này đang tốt hay xấu"*. Một phần tử giữ nguyên màu suốt loop. Thứ đổi theo trạng thái là **độ sáng, glow, opacity** — không phải hue.
-2. **Lúc rỗi thì tối.** Viền và đường mang màu định danh chỉ lên full khi đang có việc chạy qua; rỗi thì `${color}59`. Màu sáng thường trực là màu đã tụt xuống thành trang trí.
+2. **Lúc rỗi thì tối.** Viền và đường mang màu định danh chỉ lên full khi đang có việc chạy qua; rỗi thì hạ alpha còn ~35%. Màu sáng thường trực là màu đã tụt xuống thành trang trí.
+
+   Mẹo `${color}59` **chỉ chạy với hex**. `idColor` trả về `oklch(…)`, nối thêm hai ký tự vào là ra CSS vô nghĩa — và trình duyệt **bỏ qua lặng lẽ**, không lỗi, không cảnh báo, chỉ là viền của bạn biến mất. Dùng cú pháp alpha của chính oklch:
+
+   ```ts
+   export const dim = (c: string, a: number) =>
+     c.startsWith("oklch") ? c.replace(/\)$/, ` / ${a})`) : `${c}${to2hex(a)}`;
+   ```
 3. **Cam là vùng cấm.** `idColor` không bao giờ sinh hue trong ±30° quanh brand. Cam chỉ thuộc hai chỗ: **title** (đứng yên, trên hairline) và **trạng thái hỏng** (nhấp nháy, dưới hairline). Tĩnh hay động là thứ tách chúng ra — mà luật header cấm mọi chuyển động ở trên, nên không bao giờ lẫn.
 
 Cú flash `brand` nổi hơn cả bảng màu **nhờ chroma, không nhờ độ sáng**: brand đo được là `oklch(0.666 0.224 34.5)` — nó *tối hơn* màu định danh (L 0.666 vs 0.75) nhưng đậm hơn mọi màu trong bảng. Đó chính là việc của `ID_CAP`: **nới trần chroma lên quá 0.224 là cú báo hỏng chìm nghỉm giữa đám màu.** Muốn bảng màu rực hơn nữa thì phải kéo `brand` rực lên trước, không phải nới trần.
