@@ -89,8 +89,57 @@ const pop  = spring({ frame, fps, config: { damping: 200 } }); // UI dựng vào
 - Stagger cùng nhóm: **4–6 frames**.
 - Tối đa ~3 loại chuyển động đồng thời — mắt chỉ theo được 1 tiêu điểm.
 
+## Sức nặng — vật có khối lượng
+
+Chuyển động "có hồn" không đến từ thêm hiệu ứng, mà từ **vật lý đúng**. Vật có khối lượng không nhảy tức thời A→B: nó tăng tốc, vọt hơi quá đích, dội lại, rồi lắng. Đi thẳng đơ, tốc độ đều, dừng khựng — đó là "thô kệch, cứng nhắc".
+
+Bốn thứ tạo sức nặng, tất cả **deterministic từ `frame`** nên seamless không đổi:
+
+1. **Spring có overshoot + settle** — thay `lerp`/`ease` thẳng bằng lò xo giảm chấn (`zeta < 1`): phần tử lao tới, vọt quá một chút, dội lại rồi yên. Đó chính là cảm giác khối lượng.
+2. **Anticipation + follow-through** — trước khi bật đi thì **nhún ngược lấy đà** (`easeInBack`); tới nơi thì **rung dư một nhịp** (`easeOutBack`/spring) rồi mới đứng. Vật nặng không khởi động/dừng tức thì.
+3. **Bay theo CUNG, nghiêng theo hướng** — vật bay theo đường vòng có trọng lực (`arc`, bezier phình sang bên) và **lean** theo hướng đi. Đường kẻ ngang đơ đọc ra là "máy móc". (Cung vẽ và cung bay vẫn phải chung một hàm — mục "Đường VẼ phải trùng khít đường BAY".)
+4. **Idle vẫn SỐNG** — lúc rỗi mọi thứ vẫn `breathe` (scale/opacity biên độ nhỏ), không frame nào chết cứng.
+
+**Cái giá phải canh:** đừng để "sức nặng" thành rung vô cớ. Rung/lắc chỉ khi CÓ NGHĨA (bị giằng, lỗi) — `shake` trang trí nằm trong mục Cấm. Và xoay một element mang **chữ** thì coi chừng jitter render (`remotion_conventions.md`: `transformBox` đo lại bbox mỗi frame → chữ nháy; dùng `transform` attribute native).
+
+### Công thức: `lib/anim.ts` thuần Node
+
+Sim và verify chạy bằng Node — **không import được `Easing`/`spring` của remotion** (kéo cả runtime remotion vào → chết trong Node). Đặt toán chuyển động thuần vào một module KHÔNG import remotion, cho cả sim, verify lẫn component xài chung → không bao giờ lệch nhau.
+
+```ts
+// Lò xo giảm chấn, đáp step 0→1. t tính bằng GIÂY (đổi frame: (f-start)/fps).
+// zeta<1 = underdamped, CÓ vọt quá đà = sức nặng. Dạng đóng → gọi frame nào cũng ra.
+export const spring01 = (t: number, { omega = 11, zeta = 0.42 } = {}) => {
+  if (t <= 0) return 0;
+  if (zeta < 1) {
+    const wd = omega * Math.sqrt(1 - zeta * zeta);
+    return 1 - Math.exp(-zeta * omega * t) * (Math.cos(wd * t) + ((zeta * omega) / wd) * Math.sin(wd * t));
+  }
+  return 1 - Math.exp(-omega * t) * (1 + omega * t); // tới hạn / quá tắt
+};
+
+// Vọt quá đích rồi lùi (đáp có đà) · nhún ngược trước khi đi (lấy đà).
+export const easeOutBack = (t: number, s = 1.70158) => 1 + (s + 1) * (t - 1) ** 3 + s * (t - 1) ** 2;
+export const easeInBack = (t: number, s = 1.70158) => (s + 1) * t ** 3 - s * t ** 2;
+
+// Điểm trên cung bezier bậc 2 a→b, phình `bend` px vuông góc dây cung (bay có trọng lực).
+export const arc = (a: Pt, b: Pt, u: number, bend: number): Pt => {
+  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+  const cx = mx + (-dy / len) * bend, cy = my + (dx / len) * bend; // điểm điều khiển
+  const v = 1 - u;
+  return { x: v * v * a.x + 2 * v * u * cx + u * u * b.x, y: v * v * a.y + 2 * v * u * cy + u * u * b.y };
+};
+
+// Nhịp SỐNG idle — period PHẢI chia hết LOOP để f0==fLOOP.
+export const breathe = (frame: number, period: number, amp = 1, phase = 0) =>
+  amp * Math.sin((2 * Math.PI * frame) / period + phase);
+```
+
+Chuyển động chỉ ở component (UI dựng vào một lần, verify không canh) vẫn dùng `spring()` của remotion được. Nhưng thứ **sim tính trước** (vị trí, verify soi) thì phải là spring thuần này — một nguồn cho cả ba.
+
 ## Cấm
 
-- `Math.random()` không seed (vỡ loop, vỡ render) — dùng `random(seed)` của Remotion.
+- `Math.random()` không seed (vỡ loop, vỡ render) — dùng `random(seed)` của Remotion, hoặc băm theo index (`(i * 2654435761) >>> 0`).
 - CSS animation/transition — mọi chuyển động theo `useCurrentFrame()`.
 - Chuyển động trang trí không mang nghĩa (particle bay lung tung, glitch, shake vô cớ).
