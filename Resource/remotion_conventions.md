@@ -72,12 +72,26 @@ Kiểm những thứ mắt không thấy được:
 
 Chạy verify **trước khi render**. Đổi một hằng số là chạy lại — nó tồn tại để bắt cái mà bạn quên cộng.
 
+## Kiểm cái được VẼ, không kiểm cái mình tưởng tượng
+
+`verify.ts` chỉ có giá trị khi nó soi đúng thứ lên màn hình. Soi nhầm thì nó cho cảm giác an toàn giả — xanh hết mà video vẫn sai. Ba lần dính, cùng một gốc:
+
+1. **Một hằng số, hai nơi đọc.** Verify phải đọc đúng con số mà scene VẼ, không tự tính lại từ toạ độ. *(password-hashing: verify đo `slot()`, scene lại vẽ ở `HACKER_HIT.x` — lệch 36px sau cú húc chéo. Verify xanh, màn hình lệch.)* Toạ độ nào cả sim lẫn verify cùng cần thì đặt **một** hằng số chung, hai bên import.
+
+2. **Seamless so cái HIỆN RA, không so mảng nội bộ.** `norm(f)` chỉ serialize thứ thực sự lên khung hình — toạ độ làm tròn, lọc `opacity > ngưỡng` — rồi khẳng định `norm(0) === norm(LOOP)`. Deep-equal cả `STATES` (gồm ball `opacity≈0`, field logic vô hình) thì hai frame "khác" ở chỗ mắt không thấy, hoặc "giống" ở chỗ vô hình. Và chốt cuối cùng luôn là **hash PNG render thật**, không tin verify một mình.
+
+3. **Cửa sổ reset chỉ cấm thứ ĐANG CHẠY.** Trong `[RESET, LOOP)` cấm thứ đang *chuyển động* (ball đang bay) và đang *kêu* (SFX). **Không** cấm phần tử tĩnh đang fade về đúng giá trị f0 — cái đó hợp lệ, và check seamless đã canh biên. Cấm nhầm fade thì hoặc báo lỗi giả, hoặc phải nới sai chỗ.
+
+**Giá trị nhấp nháy đo qua NHIỀU frame, không chấm một frame.** Blink có lúc chạm 0; kiểm một frame trúng đáy là fail giả. Lấy min/max trong một cửa sổ.
+
 ## Bẫy đã trả giá
 
 - **`pathLength` trên `<rect>` không chạy trong Chrome headless.** Progress ring vẽ bằng `<rect pathLength={1}>` ra **trắng trơn**, không báo lỗi gì. Dùng `<path>` — chỗ đó thì chạy.
 - **Đừng nuốt lỗi bằng `2>/dev/null` hay `| head`.** `head` luôn exit 0, nên `cmd | head && echo OK` in ra "OK" ngay cả khi `cmd` fail. Đọc **exit code**, đừng đọc chữ.
 - **`npx remotion add <pkg>` fail trên Windows** (`spawn npm ENOENT`) — cài thẳng bằng `npm i --save-exact <pkg>@<version>`.
 - **Đo bằng pixel, đừng đo bằng mắt.** Nghi ngờ gì thì render `--scale=1` rồi đọc pixel bằng Node: che có kín không, ring có chạy đúng chiều không, biên loop có im không. Mắt nhìn ảnh 0.5× thì cái gì cũng "trông ổn".
+- **`transformBox: fill-box` trên `<text>`/`<g>` SVG làm chữ NHÁY khi phần tử xoay.** Browser phải đo lại bounding-box glyph mỗi frame để tính `transform-origin: center` → tâm nhảy sub-pixel → chữ giật lia lịa dù toạ độ mượt. Biến hình (vỡ, xoay quanh tâm) một element SVG thì dùng **`transform` attribute native** (`rotate(deg cx cy)`, user units, tâm chỉ định rõ), đừng dùng CSS `transformBox`. *(Số liệu sim mượt tuyệt đối mà mắt vẫn thấy giật = nghi ngay tầng render, đừng sửa sim.)*
+- **`sim.ts` không được import module kéo `Easing` của remotion.** Verify chạy bằng Node; `import { Easing } from "remotion"` lôi cả runtime remotion vào → chết trong Node. Đặt toán chuyển động thuần (spring/arc/breathe) vào một module **không import remotion**, cho cả sim, verify lẫn component xài chung — không bao giờ lệch nhau.
 
 ## Quy tắc code
 

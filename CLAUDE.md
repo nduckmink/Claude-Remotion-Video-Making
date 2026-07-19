@@ -46,7 +46,7 @@ Cần code từ project cũ (`Header.tsx`, `tokens.ts`, primitives…)? **Copy s
 
 ### Nhiều scene trong một project
 
-Một project có thể chứa nhiều scene (mỗi scene một Composition trong `Root.tsx`) khi chúng cùng một chủ đề — ví dụ `150726/nplusone` có cả `NPlusOne` lẫn `RateLimit`. Nhưng **một loop vẫn chỉ kể một ý** (`Resource/creative_rule.md`). Chủ đề mới, không liên quan → project mới, ngày mới.
+Một project có thể chứa nhiều scene (mỗi scene một Composition trong `Root.tsx`) khi chúng cùng một chủ đề — ví dụ `150726/nplusone` có cả `NPlusOne` lẫn `RateLimit`. Một loop được phép **nhiều nhịp trong một MẠCH kể liền** — vòng đời, chuỗi nhân quả — miễn xem một mạch là hiểu (`Resource/creative_rule.md`). Cái cấm là nhồi những khái niệm **rời rạc** không nối vào mạch → chủ đề mới, không liên quan thì tách project mới, ngày mới.
 
 ## Bắt đầu một video mới
 

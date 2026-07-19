@@ -25,3 +25,7 @@
 *.flac
 *.aac
 *.m4a
+
+# Verify build tạm (esbuild bundle)
+.v.cjs
+.dump.cjs

@@ -25,7 +25,7 @@ Prompt là điểm xuất phát, không phải trần. Claude được phép ch�
 ## Ràng buộc cứng
 
 - **Đúng kỹ thuật là bất khả xâm phạm.** Đơn giản hoá được, sai thì không. Số liệu phải hợp lý với thực tế.
-- **Một loop = một ý.** Khái niệm cần nhiều ý → đề xuất tách thành series.
+- **Một loop = một MẠCH kể liền.** Được phép nhiều nhịp — một vòng đời (sinh ra → dùng → bị tấn công), một chuỗi nhân quả — miễn chúng nối thành MỘT câu chuyện liên tục, xem một mạch là hiểu. Cái cấm là **nhồi những khái niệm rời rạc** không nối vào mạch: thứ đó tách project khác. "Nhiều nhịp trong một dòng chảy" khác hẳn "nhiều chủ đề trong một khung hình".
 - **Hình trước, chữ sau.** Text chỉ để label và chốt insight, không giải thích thay hình.
 
 ## Được phép

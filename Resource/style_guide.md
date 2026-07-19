@@ -26,8 +26,9 @@ export const C = {
   lineLive: 'rgba(255,255,255,0.50)', // khung đang tham gia
   data:     '#E8EBF0',                // dữ liệu CHƯA mang danh tính — trắng đặc
 
-  // ── Cam: màu của KÊNH ──
-  brand:    '#FF4A1A',   // title + trạng thái hỏng. Không cấp cho phần tử nào.
+  // ── Hai màu TRẠNG THÁI: mỗi cái một hue khoá cứng, KHÔNG cấp cho phần tử nào ──
+  brand:    '#FF4A1A',              // cam ~34.5° — "chú ý / đang xảy ra / hỏng". Cả title.
+  pass:     'oklch(0.76 0.17 150)', // xanh ~150° — "hợp lệ / hit / xong".
 
   bgPanel:  '#1C1920',                // nền card — ĐỤC, và sáng hơn bgLift
   gridDim:  'rgba(255,255,255,0.07)', // grid chấm
@@ -55,7 +56,8 @@ Nhặt màu bằng mắt hỏng hai đường: mỗi video một tông chẳng �
 //        hue yếu nhất, và ra một bảng màu nhợt.
 // Chrome của Remotion là 149 — oklch() chạy thẳng (cần 111+).
 const BRAND_H = 34.5;  // hue của brand #FF4A1A — ĐO ra, đừng đoán
-const GUARD   = 30;    // vùng cấm mỗi bên brand
+const PASS_H  = 150;   // hue của pass (xanh) — màu trạng thái THỨ HAI
+const GUARD   = 30;    // vùng cấm mỗi bên MỖI màu trạng thái
 const ID_L    = 0.75;  // mọi màu định danh chung một L
 const ID_CAP  = 0.18;  // trần chroma — phải nằm DƯỚI brand (0.224)
 
@@ -87,9 +89,14 @@ const fitChroma = (H: number) => {
   return lo * 0.98; // lùi khỏi biên một chút
 };
 
-/** Màu định danh của phần tử thứ i trong n phần tử. */
+/** Màu định danh của phần tử thứ i trong n phần tử. Né CẢ HAI hue trạng thái. */
 export const idColor = (i: number, n: number) => {
-  const H = (BRAND_H + GUARD + (360 - 2 * GUARD) * ((i + 0.5) / n)) % 360;
+  // Khoét hai nêm ±GUARD (quanh brand VÀ quanh pass) khỏi vòng tròn, rồi rải i
+  // đều lên phần còn lại. Bắt đầu ngay sau nêm brand, đi lên; chạm nêm pass thì
+  // nhảy qua. (Cố định thứ tự brand < pass vì hai hue đều khoá cứng.)
+  let H = BRAND_H + GUARD + ((i + 0.5) / n) * (360 - 4 * GUARD);
+  if (H > PASS_H - GUARD) H += 2 * GUARD; // nhảy qua nêm của pass
+  H %= 360;
   return `oklch(${ID_L} ${fitChroma(H)} ${H})`;
 };
 ```
@@ -98,7 +105,7 @@ export const idColor = (i: number, n: number) => {
 
 Vượt trần thì **Chrome lặng lẽ kẹp về biên** — không lỗi, không cảnh báo, chỉ là màu bạn thấy không phải màu bạn viết. Đo bằng cách render một ô rồi đọc pixel: kênh nào chạm `0` hoặc `255` là đã bị kẹp.
 
-Ra được (`n=4`): `#c2b011` `#15c9ac` `#6eb2fd` `#e880e8` — chroma `0.130–0.180`, cùng `L`. Không màu nào gần cam, không màu nào rực hơn hẳn màu nào.
+Ra được (`n=4`): `#9b6801` `#028abf` `#4e63fc` `#df34b5` (hue 95·215·275·335) — cùng `L`, không màu nào gần cam **hay** gần xanh `pass`. Chú ý: cái teal `~168°` mà bảng cũ từng sinh ra nay bị loại — nó rơi vào nêm cấm của `pass`. Đó là cơ chế đang chạy: **một phần tử không bao giờ vô tình khoác đúng màu "thành công".**
 
 Ba luật, không nới:
 
@@ -111,7 +118,7 @@ Ba luật, không nới:
    export const dim = (c: string, a: number) =>
      c.startsWith("oklch") ? c.replace(/\)$/, ` / ${a})`) : `${c}${to2hex(a)}`;
    ```
-3. **Cam là vùng cấm.** `idColor` không bao giờ sinh hue trong ±30° quanh brand. Cam chỉ thuộc hai chỗ: **title** (đứng yên, trên hairline) và **trạng thái hỏng** (nhấp nháy, dưới hairline). Tĩnh hay động là thứ tách chúng ra — mà luật header cấm mọi chuyển động ở trên, nên không bao giờ lẫn.
+3. **Hai màu trạng thái, mỗi cái một vùng cấm.** Có ĐÚNG hai hue mang nghĩa cố định, không cấp cho phần tử nào: `brand` (cam ~34.5°) = "chú ý / đang xảy ra / hỏng", và `pass` (xanh ~150°) = "hợp lệ / hit / xong". `idColor` không bao giờ sinh hue trong ±30° quanh **cả hai** — nếu không, một phần tử ngẫu nhiên sẽ khoác đúng màu "hỏng" hoặc "thành công", và người xem đọc nhầm danh tính thành trạng thái. Hai màu này chỉ bật lên khi trạng thái đó CÓ THẬT; đứng yên thì tắt. (Cam có một chỗ tĩnh được phép: **title**, trên hairline — mà luật header cấm mọi chuyển động ở trên nên không bao giờ lẫn với cú flash hỏng bên dưới.)
 
 Cú flash `brand` nổi hơn cả bảng màu **nhờ chroma, không nhờ độ sáng**: brand đo được là `oklch(0.666 0.224 34.5)` — nó *tối hơn* màu định danh (L 0.666 vs 0.75) nhưng đậm hơn mọi màu trong bảng. Đó chính là việc của `ID_CAP`: **nới trần chroma lên quá 0.224 là cú báo hỏng chìm nghỉm giữa đám màu.** Muốn bảng màu rực hơn nữa thì phải kéo `brand` rực lên trước, không phải nới trần.
 
