@@ -1,0 +1,35 @@
+{
+  "name": "sql-database",
+  "version": "1.0.0",
+  "description": "Caching Layers — animation loop diễn hoạ cache như tầng trampoline: bật càng gần client càng nhanh",
+  "repository": {},
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@remotion/cli": "4.0.489",
+    "@remotion/google-fonts": "4.0.489",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.489"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config-flat": "4.0.489",
+    "@types/node": "22.10.5",
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "esbuild": "0.25.0",
+    "eslint": "9.19.0",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "lint": "eslint src && tsc",
+    "sfx": "node scripts/gen-sfx.mjs",
+    "verify": "esbuild src/scenes/CachingLayers/verify.ts --bundle --platform=node --outfile=.verify.cjs --log-level=error && node .verify.cjs"
+  },
+  "sideEffects": [
+    "*.css"
+  ]
+}
